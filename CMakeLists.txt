@@ -4,6 +4,16 @@ project(my_behavior_tree)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   behaviortree_cpp_v3
+  message_generation
+)
+
+add_service_files(
+  FILES
+  TakePackage.srv
+)
+
+generate_messages(
+  DEPENDENCIES
 )
 
 catkin_package(

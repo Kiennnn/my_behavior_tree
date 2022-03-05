@@ -2,6 +2,7 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "std_msgs/String.h"
 #include "ros/ros.h"
+#include "my_behavior_tree/TakePackage.h"
  
 namespace RobotBTNodes
 {
@@ -42,10 +43,17 @@ class ArrivedPoint : public BT::ConditionNode
 class ReceivePackage : public BT::ConditionNode
 {
     public:
+    ros::NodeHandle nh_;
+    ros::ServiceServer srv;
+    bool taken;
     ReceivePackage(const std::string& name) : BT::ConditionNode(name, {})
     {
+        srv = nh_.advertiseService("take_package", &ReceivePackage::package_clbk, this);
+        ROS_WARN("[ReceivePackage]: /take_package service is ready");
     }
     BT::NodeStatus tick() override;
+    bool package_clbk(my_behavior_tree::TakePackage::Request &req,
+                      my_behavior_tree::TakePackage::Response &res);
 };
 
 class GoBack : public BT::ConditionNode

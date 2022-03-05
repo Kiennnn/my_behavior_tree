@@ -10,11 +10,11 @@ BT::NodeStatus SayHi::tick()
    std::cout << "[SayHi]: Starting up..." << std::endl;
    ros::Duration(3.0).sleep();
    std::cout << "[SayHi]: Hello human!" << std::endl;
-   ros::Subscriber sub = nh_.subscribe("/chatter", 1000, &SayHi::chatterCallback, this);
-   clbk = false;
-   while(!clbk){
-      ros::spinOnce();
-   }
+   // ros::Subscriber sub = nh_.subscribe("/chatter", 1000, &SayHi::chatterCallback, this);
+   // clbk = false;
+   // while(!clbk){
+   //    ros::spinOnce();
+   // }
    return BT::NodeStatus::SUCCESS;
 }
 
@@ -36,7 +36,7 @@ BT::NodeStatus CheckBattery()
 MoveToPoint::MoveToPoint(const std::string& name, const BT::NodeConfiguration& config) :
     BT::StatefulActionNode(name, config)
 {
-   ROS_WARN("[MoveToPoint]: All constructors run first");
+   ROS_WARN("[MoveToPoint]: Constructor");
 }
 
 BT::NodeStatus MoveToPoint::onStart()
@@ -68,10 +68,23 @@ BT::NodeStatus ArrivedPoint::tick()
 // Check if package was taken
 BT::NodeStatus ReceivePackage::tick()
 {
+   taken = false;
    std::cout << "[ReceivePackage]: Take your package at tray number 2" << std::endl;
-   ros::Duration(5.0).sleep();
+   // ros::Duration(5.0).sleep();
+   while (!taken)
+   {
+      ros::spinOnce();
+   }
    std::cout << "[ReceivePackage]: Package was taken" << std::endl;
    return BT::NodeStatus::SUCCESS;
+}
+
+bool ReceivePackage::package_clbk(my_behavior_tree::TakePackage::Request &req,
+                      my_behavior_tree::TakePackage::Response &res)
+{
+   res.success = true;
+   taken = true;
+   return true;
 }
 
 // Go back to started position
