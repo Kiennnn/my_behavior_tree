@@ -1,41 +1,86 @@
 #include "robot.h"
-#include <chrono>
-#include <thread>
+#include "ros/ros.h"
+#include "ros/console.h"
  
 namespace RobotBTNodes
 {
 
 BT::NodeStatus SayHi::tick()
 {
-   std::cout << "[SayHi]: Hello human" << std::endl;
-   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+   std::cout << "[SayHi]: Starting up..." << std::endl;
+   ros::Duration(3.0).sleep();
+   std::cout << "[SayHi]: Hello human!" << std::endl;
+   ros::Subscriber sub = nh_.subscribe("/chatter", 1000, &SayHi::chatterCallback, this);
+   clbk = false;
+   while(!clbk){
+      ros::spinOnce();
+   }
    return BT::NodeStatus::SUCCESS;
 }
 
+void SayHi::chatterCallback(const std_msgs::String::ConstPtr& msg)
+{
+   std::cout << ("[SayHi]: ROS topic testing: I heard: [%s]", msg->data.c_str());
+   clbk = true;
+}
+
+// Check battery
 BT::NodeStatus CheckBattery()
 {
-   std::cout << "[Battery]: Fully Charged" << std::endl;
+   ros::Duration(1.0).sleep();
+   std::cout << "[CheckBattery]: Fully Charged" << std::endl;
    return BT::NodeStatus::SUCCESS;
 }
 
-BT::NodeStatus MoveToPoint::tick()
+// Call move base action
+MoveToPoint::MoveToPoint(const std::string& name, const BT::NodeConfiguration& config) :
+    BT::StatefulActionNode(name, config)
 {
-   std::cout << "[MoveToPoint]: Moving to point" << std::endl;
-   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-   return BT::NodeStatus::SUCCESS;
+   ROS_WARN("[MoveToPoint]: All constructors run first");
 }
 
-BT::NodeStatus CheckDoor::tick()
+BT::NodeStatus MoveToPoint::onStart()
 {
-    std::cout << "[CheckDoor]: Checking door is opened or closed" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    return BT::NodeStatus::FAILURE;
-}
-
-BT::NodeStatus OpenDoor::tick()
-{
-   std::cout << "[OpenDoor]: Opening door" << std::endl;
+   std::cout << "[MoveToPoint]: Ready to move" << std::endl;
    return BT::NodeStatus::RUNNING;
+}
+
+BT::NodeStatus MoveToPoint::onRunning()
+{
+   std::cout << "[MoveToPoint]: Going to destination..." << std::endl;  
+   ros::Duration(5.0).sleep();
+   return BT::NodeStatus::SUCCESS;
+}
+
+void MoveToPoint::onHalted() {};
+
+BT::PortsList MoveToPoint::providedPorts() {
+    return { BT::InputPort<std::string>("loc") };
+}
+
+// Check if robot has arrived
+BT::NodeStatus ArrivedPoint::tick()
+{
+    std::cout << "[ArrivedPoint]: Arrived to point" << std::endl;
+    return BT::NodeStatus::SUCCESS;
+}
+
+// Check if package was taken
+BT::NodeStatus ReceivePackage::tick()
+{
+   std::cout << "[ReceivePackage]: Take your package at tray number 2" << std::endl;
+   ros::Duration(5.0).sleep();
+   std::cout << "[ReceivePackage]: Package was taken" << std::endl;
+   return BT::NodeStatus::SUCCESS;
+}
+
+// Go back to started position
+BT::NodeStatus GoBack::tick()
+{
+   std::cout << "[GoBack]: Going back to reception desk..." << std::endl;
+   ros::Duration(5.0).sleep();;
+   std::cout << "[GoBack]: Arrived home" << std::endl;
+   return BT::NodeStatus::SUCCESS;
 }
  
 }  // end namespace
