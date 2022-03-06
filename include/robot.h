@@ -3,6 +3,10 @@
 #include "std_msgs/String.h"
 #include "ros/ros.h"
 #include "my_behavior_tree/TakePackage.h"
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
  
 namespace RobotBTNodes
 {
@@ -24,6 +28,9 @@ BT::NodeStatus CheckBattery();  // another way to define node
 class MoveToPoint : public BT::StatefulActionNode
 {
     public:
+    MoveBaseClient client_;
+    move_base_msgs::MoveBaseGoal goal_;
+
     MoveToPoint(const std::string& name, const BT::NodeConfiguration& config);
     BT::NodeStatus onStart() override;
     BT::NodeStatus onRunning() override;
@@ -56,13 +63,17 @@ class ReceivePackage : public BT::ConditionNode
                       my_behavior_tree::TakePackage::Response &res);
 };
 
-class GoBack : public BT::ConditionNode
+class GoBack : public BT::StatefulActionNode
 {
     public:
-    GoBack(const std::string& name) : BT::ConditionNode(name, {})
-    {
-    }
-    BT::NodeStatus tick() override;
+    MoveBaseClient client_;
+    move_base_msgs::MoveBaseGoal goal_;
+
+    GoBack(const std::string& name, const BT::NodeConfiguration& config);
+    BT::NodeStatus onStart() override;
+    BT::NodeStatus onRunning() override;
+    void onHalted() override;
+    static BT::PortsList providedPorts();
 };
 
 }  // end namespace

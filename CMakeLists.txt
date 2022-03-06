@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   behaviortree_cpp_v3
   message_generation
+  actionlib
+  move_base_msgs
 )
 
 add_service_files(
