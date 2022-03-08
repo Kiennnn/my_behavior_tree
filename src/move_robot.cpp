@@ -6,17 +6,20 @@
 #include "std_msgs/String.h"
 
 static const char* xml_text = R"(
-    <root main_tree_to_execute = "MainTree" >
+    <root main_tree_to_execute="MainTree" >
         <BehaviorTree ID="MainTree">
             <Sequence name="root_sequence">
-                <SayHi          name = "say_hi"/>
-                <CheckBattery   name = "check_battery"/>
-                <MoveToPoint    name = "move_to_point"/>
-                <ArrivedPoint   name = "arrived_point"/>
-                <Fallback>
-                    <ReceivePackage  name = "receive_package"/>
-                </Fallback>
-                <GoBack         name = "go_back"/>
+                <SayHi name="say_hi"/>
+                <CheckBattery name="check_battery"/>
+                <Repeat num_cycles="2">
+                    <Sequence name="delivery_sequence">
+                        <MoveToPoint name="move_to_point"    pose="1;0;1.57"/>
+                        <Fallback>
+                            <ReceivePackage name="receive_package"    tray="2"/>
+                        </Fallback>
+                    </Sequence>
+                </Repeat>
+                <MoveToPoint name="move_to_point"    pose="0;0;0"/>
             </Sequence>
         </BehaviorTree>
     </root>
@@ -36,9 +39,7 @@ int main(int argc, char **argv)
     factory.registerNodeType<RobotBTNodes::SayHi>("SayHi");
     factory.registerSimpleCondition("CheckBattery", std::bind(RobotBTNodes::CheckBattery));
     factory.registerNodeType<RobotBTNodes::MoveToPoint>("MoveToPoint");
-    factory.registerNodeType<RobotBTNodes::ArrivedPoint>("ArrivedPoint");
     factory.registerNodeType<RobotBTNodes::ReceivePackage>("ReceivePackage");
-    factory.registerNodeType<RobotBTNodes::GoBack>("GoBack");
 
     // Create tree
     tree = factory.createTreeFromText(xml_text);

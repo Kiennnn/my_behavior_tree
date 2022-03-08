@@ -3,31 +3,30 @@
 #include "std_msgs/String.h"
 #include "ros/ros.h"
 #include "my_behavior_tree/TakePackage.h"
-#include <actionlib/client/simple_action_client.h>
-#include <move_base_msgs/MoveBaseAction.h>
+#include "actionlib/client/simple_action_client.h"
+#include "move_base_msgs/MoveBaseAction.h"
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
- 
+
 namespace RobotBTNodes
 {
 
 class SayHi : public BT::SyncActionNode
 {
-    public:
+public:
     ros::NodeHandle nh_;
-    bool clbk;
-    SayHi(const std::string& name) : BT::SyncActionNode(name, {})
-    {
-    }
+    ros::ServiceServer srv;
+    SayHi(const std::string& name);
     BT::NodeStatus tick() override;
-    void chatterCallback(const std_msgs::String::ConstPtr& msg);
+    bool package_clbk(my_behavior_tree::TakePackage::Request &req,
+                      my_behavior_tree::TakePackage::Response &res);
 };
 
 BT::NodeStatus CheckBattery();  // another way to define node
 
 class MoveToPoint : public BT::StatefulActionNode
 {
-    public:
+public:
     MoveBaseClient client_;
     move_base_msgs::MoveBaseGoal goal_;
 
@@ -38,41 +37,12 @@ class MoveToPoint : public BT::StatefulActionNode
     static BT::PortsList providedPorts();
 };
 
-class ArrivedPoint : public BT::ConditionNode
-{
-    public:
-    ArrivedPoint(const std::string& name) : BT::ConditionNode(name, {})
-    {
-    }
-    BT::NodeStatus tick() override;
-};
-
 class ReceivePackage : public BT::ConditionNode
 {
-    public:
-    ros::NodeHandle nh_;
-    ros::ServiceServer srv;
+public:
     bool taken;
-    ReceivePackage(const std::string& name) : BT::ConditionNode(name, {})
-    {
-        srv = nh_.advertiseService("take_package", &ReceivePackage::package_clbk, this);
-        ROS_WARN("[ReceivePackage]: /take_package service is ready");
-    }
+    ReceivePackage(const std::string& name, const BT::NodeConfiguration& config);
     BT::NodeStatus tick() override;
-    bool package_clbk(my_behavior_tree::TakePackage::Request &req,
-                      my_behavior_tree::TakePackage::Response &res);
-};
-
-class GoBack : public BT::StatefulActionNode
-{
-    public:
-    MoveBaseClient client_;
-    move_base_msgs::MoveBaseGoal goal_;
-
-    GoBack(const std::string& name, const BT::NodeConfiguration& config);
-    BT::NodeStatus onStart() override;
-    BT::NodeStatus onRunning() override;
-    void onHalted() override;
     static BT::PortsList providedPorts();
 };
 
