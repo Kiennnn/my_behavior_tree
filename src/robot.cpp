@@ -11,6 +11,7 @@ bool choose_path = false;
 int number_of_poses;
 int arr_index = 0;
 my_behavior_tree::DeliveryPose *deli_pose;
+int timeout = 10;  // time to wait (s)
 
 // Template specialization to converts a string to geometry_msgs/Pose
 template <> inline geometry_msgs::Pose BT::convertFromString(BT::StringView str)
@@ -227,11 +228,21 @@ BT::NodeStatus ReceivePackage::tick()
    BT::Optional<std::string> tray = getInput<std::string>("tray");
    pkg_taken = false;
    std::cout << "[ReceivePackage]: Take your package at tray number " << tray.value() << std::endl;
-   while (!pkg_taken)
+   int count = 0;
+   while (!pkg_taken && count<timeout)
    {
+      ros::Duration(1).sleep();
+      count++;
       ros::spinOnce();
    }
-   std::cout << "[ReceivePackage]: Package is taken" << std::endl;
+   if(count < timeout)
+   {
+      std::cout << "[ReceivePackage]: Package is taken" << std::endl;
+   }
+   else
+   {
+      std::cout << "Timeout, moving on..." << std::endl;
+   }
 
    // End of loop
    if(arr_index == number_of_poses-1)

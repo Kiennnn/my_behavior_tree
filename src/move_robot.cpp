@@ -18,9 +18,7 @@ static const char* xml_text = R"(
                         <GetDeliveryPoint   name="get_delivery_point"   pose="{pose_value}"/>
                         <MoveToPoint        name="move_to_point"        pose="{pose_value}"/>
                         <GetTray            name="get_tray"             tray="{tray_number}"/>
-                        <Fallback>
-                            <ReceivePackage     name="receive_package"      tray="{tray_number}"/>
-                        </Fallback>
+                        <ReceivePackage     name="receive_package"      tray="{tray_number}"/>
                     </Sequence>
                 </Repeat>
                 <MoveToPoint    name="move_to_point"    pose="0;0;0"/>
