@@ -1,9 +1,5 @@
 <launch>
 
-    <!-- <rosparam param="x">
-        1
-    </rosparam> -->
-
     <!-- Arguments -->
     <arg name="world" default="sim_house"/>
 

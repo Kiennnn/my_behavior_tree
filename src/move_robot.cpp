@@ -9,17 +9,21 @@ static const char* xml_text = R"(
     <root main_tree_to_execute="MainTree" >
         <BehaviorTree ID="MainTree">
             <Sequence name="root_sequence">
-                <SayHi name="say_hi"/>
-                <CheckBattery name="check_battery"/>
-                <Repeat num_cycles="2">
+                <Initialize         name="initialize"/>
+                <CheckBattery       name="check_battery"/>
+                <ChoosePath         name="choose_path"/>
+                <GetNumOfPoses      name="get_number_of_poses"  num_cycles="{loops}"/>
+                <Repeat num_cycles="{loops}">
                     <Sequence name="delivery_sequence">
-                        <MoveToPoint name="move_to_point"    pose="1;0;1.57"/>
+                        <GetDeliveryPoint   name="get_delivery_point"   pose="{pose_value}"/>
+                        <MoveToPoint        name="move_to_point"        pose="{pose_value}"/>
+                        <GetTray            name="get_tray"             tray="{tray_number}"/>
                         <Fallback>
-                            <ReceivePackage name="receive_package"    tray="2"/>
+                            <ReceivePackage     name="receive_package"      tray="{tray_number}"/>
                         </Fallback>
                     </Sequence>
                 </Repeat>
-                <MoveToPoint name="move_to_point"    pose="0;0;0"/>
+                <MoveToPoint    name="move_to_point"    pose="0;0;0"/>
             </Sequence>
         </BehaviorTree>
     </root>
@@ -36,9 +40,13 @@ int main(int argc, char **argv)
     BT::BehaviorTreeFactory factory;
 
     // Register nodes
-    factory.registerNodeType<RobotBTNodes::SayHi>("SayHi");
+    factory.registerNodeType<RobotBTNodes::Initialize>("Initialize");
     factory.registerSimpleCondition("CheckBattery", std::bind(RobotBTNodes::CheckBattery));
+    factory.registerNodeType<RobotBTNodes::ChoosePath>("ChoosePath");
+    factory.registerNodeType<RobotBTNodes::GetNumOfPoses>("GetNumOfPoses");
+    factory.registerNodeType<RobotBTNodes::GetDeliveryPoint>("GetDeliveryPoint");
     factory.registerNodeType<RobotBTNodes::MoveToPoint>("MoveToPoint");
+    factory.registerNodeType<RobotBTNodes::GetTray>("GetTray");
     factory.registerNodeType<RobotBTNodes::ReceivePackage>("ReceivePackage");
 
     // Create tree

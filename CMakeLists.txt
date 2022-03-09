@@ -12,6 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   TakePackage.srv
+  SetDeliveryPoint.srv
+)
+
+add_message_files(
+  FILES
+  DeliveryPose.msg
 )
 
 generate_messages(
@@ -21,7 +27,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES ${BEHAVIOR_TREE_LIBRARY}
- CATKIN_DEPENDS roscpp
+ CATKIN_DEPENDS roscpp message_runtime
  DEPENDS
 )
 
