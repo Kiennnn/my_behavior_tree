@@ -8,7 +8,7 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-namespace RobotBTNodes
+namespace Control
 {
 
 class Initialize : public BT::SyncActionNode

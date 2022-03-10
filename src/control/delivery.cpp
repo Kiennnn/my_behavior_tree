@@ -1,4 +1,4 @@
-#include "robot.h"
+#include "delivery.h"
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "tf2/LinearMath/Quaternion.h"
@@ -36,9 +36,9 @@ template <> inline geometry_msgs::Pose BT::convertFromString(BT::StringView str)
    }
 }
 
-namespace RobotBTNodes
+namespace Control
 {
-
+   
 // Startup node
 Initialize::Initialize(const std::string& name) : BT::SyncActionNode(name, {})
 {
@@ -138,10 +138,10 @@ GetDeliveryPoint::GetDeliveryPoint(const std::string& name, const BT::NodeConfig
 BT::NodeStatus GetDeliveryPoint::tick()
 {
    geometry_msgs::Pose delivery_pose;
-   delivery_pose.position.x = (deli_pose + arr_index)->x;
-   delivery_pose.position.y = (deli_pose + arr_index)->y;
+   delivery_pose.position.x = (deli_pose + arr_index)->office_pose.x;
+   delivery_pose.position.y = (deli_pose + arr_index)->office_pose.y;
    tf2::Quaternion q;
-   q.setRPY(0, 0, (deli_pose + arr_index)->yaw);
+   q.setRPY(0, 0, (deli_pose + arr_index)->office_pose.yaw);
    q.normalize();
    delivery_pose.orientation = tf2::toMsg(q);
    setOutput<geometry_msgs::Pose>("pose", delivery_pose);

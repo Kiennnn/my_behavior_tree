@@ -17,6 +17,7 @@ add_service_files(
 
 add_message_files(
   FILES
+  OfficePose.msg
   DeliveryPose.msg
 )
 
@@ -37,12 +38,12 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(my_bt_lib src/dummy.cpp src/robot.cpp)
+add_library(my_bt_lib src/control/delivery.cpp
+            src/reception/music.cpp src/reception/time_keeping.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(my_bt_lib ${BEHAVIOR_TREE_LIBRARY})
 
-add_executable(my_1st_bt src/my_1st_bt.cpp src/dummy.cpp)
-target_link_libraries(my_1st_bt ${catkin_LIBRARIES})
-add_executable(move_robot src/move_robot.cpp src/robot.cpp)
+add_executable(move_robot src/move_robot.cpp src/control/delivery.cpp
+              src/reception/music.cpp src/reception/time_keeping.cpp)
 target_link_libraries(move_robot ${catkin_LIBRARIES})

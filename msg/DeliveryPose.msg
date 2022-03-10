@@ -1,4 +1,2 @@
-float32 x
-float32 y
-float32 yaw
+OfficePose office_pose
 string tray
