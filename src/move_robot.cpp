@@ -5,19 +5,20 @@
 #include "delivery.h"
 #include "music.h"
 #include "time_keeping.h"
+#include "charge.h"
 #include "std_msgs/String.h"
 
 static const char* xml_text = R"(
     <root main_tree_to_execute="MainTree" >
 
         <BehaviorTree ID="Delivery">
-            <Sequence name="root_sequence">
+            <Sequence name="delivery_sequence">
                 <Initialize         name="initialize"/>
                 <CheckBattery       name="check_battery"/>
                 <ChoosePath         name="choose_path"/>
                 <GetNumOfPoses      name="get_number_of_poses"  num_cycles="{loops}"/>
                 <Repeat num_cycles="{loops}">
-                    <Sequence name="delivery_sequence">
+                    <Sequence name="moving_sequence">
                         <GetDeliveryPoint   name="get_delivery_point"   pose="{pose_value}"/>
                         <MoveToPoint        name="move_to_point"        pose="{pose_value}"/>
                         <GetTray            name="get_tray"             tray="{tray_number}"/>
@@ -28,10 +29,18 @@ static const char* xml_text = R"(
             </Sequence>
         </BehaviorTree>
 
+        <BehaviorTree ID="Charge">
+            <Sequence name="charge_sequence">
+                <GetChargeStation   name="get_charge_station"   station="{location}"/>
+                <MoveToPoint        name="move_to_point"         pose="{location}"/>
+            </Sequence>
+        </BehaviorTree>
+
 
         <BehaviorTree ID="Control">
             <Fallback name="control_fallback">
                 <SubTree ID="Delivery"/>
+                <SubTree ID="Charge"/>
             </Fallback>
         </BehaviorTree>
 
@@ -71,6 +80,9 @@ int main(int argc, char **argv)
     factory.registerNodeType<Control::MoveToPoint>("MoveToPoint");
     factory.registerNodeType<Control::GetTray>("GetTray");
     factory.registerNodeType<Control::ReceivePackage>("ReceivePackage");
+
+    factory.registerNodeType<Control::GetChargeStation>("GetChargeStation");
+
     factory.registerNodeType<Reception::TimeKeeping>("TimeKeeping");
     factory.registerNodeType<Reception::Music>("Music");
 

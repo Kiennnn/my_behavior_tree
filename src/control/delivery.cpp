@@ -1,9 +1,6 @@
 #include "delivery.h"
 #include "ros/ros.h"
 #include "ros/console.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include "geometry_msgs/Pose.h"
 #include "my_behavior_tree/DeliveryPose.h"
 
 bool pkg_taken = false;
@@ -12,29 +9,6 @@ int number_of_poses;
 int arr_index = 0;
 my_behavior_tree::DeliveryPose *deli_pose;
 int timeout = 10;  // time to wait (s)
-
-// Template specialization to converts a string to geometry_msgs/Pose
-template <> inline geometry_msgs::Pose BT::convertFromString(BT::StringView str)
-{
-   // We expect real numbers separated by semicolons
-   auto parts = splitString(str, ';');
-   if (parts.size() != 3)
-   {
-      throw BT::RuntimeError("invalid input)");
-   }
-   else
-   {
-      geometry_msgs::Pose output;
-      output.position.x = convertFromString<double>(parts[0]);
-      output.position.y = convertFromString<double>(parts[1]);
-      double yaw = convertFromString<double>(parts[2]);
-      tf2::Quaternion q;
-      q.setRPY(0, 0, yaw);
-      q.normalize();
-      output.orientation = tf2::toMsg(q);
-      return output;
-   }
-}
 
 namespace Control
 {
