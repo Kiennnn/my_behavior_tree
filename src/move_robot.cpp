@@ -5,6 +5,7 @@
 #include "delivery.h"
 #include "music.h"
 #include "time_keeping.h"
+#include "direction.h"
 #include "charge.h"
 #include "std_msgs/String.h"
 
@@ -31,8 +32,15 @@ static const char* xml_text = R"(
 
         <BehaviorTree ID="Charge">
             <Sequence name="charge_sequence">
-                <GetChargeStation   name="get_charge_station"   station="{location}"/>
-                <MoveToPoint        name="move_to_point"         pose="{location}"/>
+                <GetChargeStation   name="get_charge_station"   station="{charging_station}"/>
+                <MoveToPoint        name="move_to_point"        pose="{charging_station}"/>
+            </Sequence>
+        </BehaviorTree>
+
+        <BehaviorTree ID="Direction">
+            <Sequence name="direction_sequence">
+                <GetGoalPose        name="get_goal_pose"    goal_pose="{goal_pose}"/>
+                <MoveToPoint        name="move_to_point"    pose="{goal_pose}"/>
             </Sequence>
         </BehaviorTree>
 
@@ -48,6 +56,7 @@ static const char* xml_text = R"(
             <Fallback name="reception_fallback">
                 <TimeKeeping    name="time_keeping"/>
                 <Music          name="music"/>
+                <SubTree        ID="Direction"/>
             </Fallback>
         </BehaviorTree>
 
@@ -85,6 +94,7 @@ int main(int argc, char **argv)
 
     factory.registerNodeType<Reception::TimeKeeping>("TimeKeeping");
     factory.registerNodeType<Reception::Music>("Music");
+    factory.registerNodeType<Reception::GetGoalPose>("GetGoalPose");
 
     // Create tree
     tree = factory.createTreeFromText(xml_text);
