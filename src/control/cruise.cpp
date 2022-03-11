@@ -9,6 +9,7 @@ int cruise_path_index = 0;
 int loop;
 int num_of_cruise_pose;
 int cruise_timeout = 10;  //seconds
+bool forward_and_back = false;
 
 namespace Control
 {
@@ -39,6 +40,13 @@ bool InitCruise::cruise_path_clbk(my_behavior_tree::CruiseMode::Request &req,
     {
         *(path+i) = req.path[i];
     }
+    
+    // check weather the path is closed loop or not
+    if(req.path[num_of_cruise_pose-1] != req.path[0])
+    {
+        forward_and_back = true;
+    }
+
     res.success = true;
     choose_cruise_path = true;
     return true;
@@ -47,6 +55,7 @@ bool InitCruise::cruise_path_clbk(my_behavior_tree::CruiseMode::Request &req,
 bool InitCruise::pause_clbk(my_behavior_tree::PauseRequest::Request &req,
                       my_behavior_tree::PauseRequest::Response &res)
 {
+    ROS_WARN("pause requested");
     if(req.pause)
     {
         pause_cruise = true;
@@ -125,6 +134,39 @@ BT::NodeStatus GetCruisePose::tick()
     q.normalize();
     cruise_pose.orientation = tf2::toMsg(q);
     setOutput<geometry_msgs::Pose>("pose", cruise_pose);
+
+    // End of path
+    if(cruise_path_index == num_of_cruise_pose-1)
+    {
+        cruise_path_index = 0;
+        loop--;
+        if(forward_and_back)
+        {
+            my_behavior_tree::OfficePose path_tmp[num_of_cruise_pose];
+            for(int i=0; i<num_of_cruise_pose; i++)
+            {
+                path_tmp[i] = *(path+i);
+            }
+            // reverse the path
+            for(int i=0; i<num_of_cruise_pose; i++)
+            {
+                *(path+i) = path_tmp[num_of_cruise_pose-1-i];
+            }
+        }
+    }
+    else
+    {
+        cruise_path_index++;
+    }
+
+    // End of loops
+    if(loop==0)
+    {
+        delete[] path;
+        choose_cruise_path = false;
+        forward_and_back = false;
+    }
+
     return BT::NodeStatus::SUCCESS;
 }
 
@@ -161,35 +203,21 @@ BT::NodeStatus CruiseMove::onStart()
 
 BT::NodeStatus CruiseMove::onRunning()
 {
-   actionlib::SimpleClientGoalState state = client_.getState();
-   if (state == actionlib::SimpleClientGoalState::SUCCEEDED){
-      std::cout << "[" << this->name() << "] Goal reached" << std::endl;
-
-        // End of path
-        if(cruise_path_index == num_of_cruise_pose-1)
-        {
-            cruise_path_index = 0;
-            loop--;
-        }
-        else
-        {
-            cruise_path_index++;
-        }
-
-        // End of loops
-        if(loop==0)
-        {
-            delete[] path;
-            choose_cruise_path = false;
-        }
-
-      return BT::NodeStatus::SUCCESS;
-   } else if (state == actionlib::SimpleClientGoalState::ACTIVE) {
-      return BT::NodeStatus::RUNNING;
-   } else {
-      std::cout << "[" << this->name() << "] Failed to reach goal" << std::endl;
-      return BT::NodeStatus::FAILURE;
-   }
+    actionlib::SimpleClientGoalState state = client_.getState();
+    if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
+    {
+        std::cout << "[" << this->name() << "] Goal reached" << std::endl;
+        return BT::NodeStatus::SUCCESS;
+    }
+    else if (state == actionlib::SimpleClientGoalState::ACTIVE) 
+    {
+        return BT::NodeStatus::RUNNING;
+    } 
+    else 
+    {
+        std::cout << "[" << this->name() << "] Failed to reach goal" << std::endl;
+        return BT::NodeStatus::FAILURE;
+    }
 }
 
 void CruiseMove::onHalted() {};
