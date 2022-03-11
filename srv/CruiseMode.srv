@@ -1,0 +1,6 @@
+OfficePose[] path
+int32 number_of_poses
+int32 loop
+int32 timeout
+---
+bool success

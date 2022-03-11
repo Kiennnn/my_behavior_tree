@@ -7,6 +7,7 @@
 #include "time_keeping.h"
 #include "direction.h"
 #include "charge.h"
+#include "cruise.h"
 #include "std_msgs/String.h"
 
 static const char* xml_text = R"(
@@ -30,6 +31,26 @@ static const char* xml_text = R"(
             </Sequence>
         </BehaviorTree>
 
+        <BehaviorTree ID="Cruise">
+            <Sequence name="cruise_sequence">
+                <InitCruise     name="init_cruise"/>
+                <CruisePath     name="cruise_path"/>
+                <GetNumLoops    name="get_num_loops"    loops="{cruise_loop}"/>
+                <Repeat num_cycles="{cruise_loop}">
+                    <Sequence   name="loop_sequence">
+                        <GetNumCruisePoses  name="get_num_cruise_poses"     num_of_poses="{num_cruise_poses}"/>
+                        <Repeat num_cycles="{num_cruise_poses}">
+                            <Sequence name="cruise_mode_sequence">
+                                <GetCruisePose  name="get_cruise_pose"  pose="{cruise_pose}"/>
+                                <CruiseMove     name="cruise_move"      pose="{cruise_pose}"/>
+                            </Sequence>
+                        </Repeat>
+                    </Sequence>
+                </Repeat>
+                <MoveToPoint    name="move_to_point"    pose="0;0;0"/>
+            </Sequence>
+        </BehaviorTree>
+
         <BehaviorTree ID="Charge">
             <Sequence name="charge_sequence">
                 <GetChargeStation   name="get_charge_station"   station="{charging_station}"/>
@@ -47,6 +68,7 @@ static const char* xml_text = R"(
 
         <BehaviorTree ID="Control">
             <Fallback name="control_fallback">
+                <SubTree ID="Cruise"/>
                 <SubTree ID="Delivery"/>
                 <SubTree ID="Charge"/>
             </Fallback>
@@ -89,6 +111,13 @@ int main(int argc, char **argv)
     factory.registerNodeType<Control::MoveToPoint>("MoveToPoint");
     factory.registerNodeType<Control::GetTray>("GetTray");
     factory.registerNodeType<Control::ReceivePackage>("ReceivePackage");
+
+    factory.registerNodeType<Control::InitCruise>("InitCruise");
+    factory.registerNodeType<Control::CruisePath>("CruisePath");
+    factory.registerNodeType<Control::GetNumLoops>("GetNumLoops");
+    factory.registerNodeType<Control::GetNumCruisePoses>("GetNumCruisePoses");
+    factory.registerNodeType<Control::GetCruisePose>("GetCruisePose");
+    factory.registerNodeType<Control::CruiseMove>("CruiseMove");
 
     factory.registerNodeType<Control::GetChargeStation>("GetChargeStation");
 

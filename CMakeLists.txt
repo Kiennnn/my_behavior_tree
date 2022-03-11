@@ -14,6 +14,8 @@ add_service_files(
   TakePackage.srv
   SetDeliveryPoint.srv
   GoToPose.srv
+  PauseRequest.srv
+  CruiseMode.srv
 )
 
 add_message_files(
@@ -40,6 +42,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(my_bt_lib src/control/delivery.cpp src/control/charge.cpp
+            src/control/cruise.cpp
             src/reception/music.cpp src/reception/time_keeping.cpp
             src/reception/direction.cpp)
 
@@ -48,5 +51,6 @@ target_link_libraries(my_bt_lib ${BEHAVIOR_TREE_LIBRARY})
 
 add_executable(move_robot src/move_robot.cpp src/control/delivery.cpp
               src/control/charge.cpp src/reception/direction.cpp
-              src/reception/music.cpp src/reception/time_keeping.cpp)
+              src/reception/music.cpp src/reception/time_keeping.cpp
+              src/control/cruise.cpp)
 target_link_libraries(move_robot ${catkin_LIBRARIES})
