@@ -67,26 +67,40 @@ static const char* xml_text = R"(
 
 
         <BehaviorTree ID="Control">
-            <Fallback name="control_fallback">
-                <SubTree ID="Cruise"/>
-                <SubTree ID="Delivery"/>
-                <SubTree ID="Charge"/>
-            </Fallback>
+            <Sequence name="choose_mode_sequence">
+                <ChooseMode name="choose_mode"  mode="{mode}"/>
+                <Switch3 variable="{mode}"  case_1="cruise" case_2="delivery" case_3="charge">
+                    <SubTree ID="Cruise"/>
+                    <SubTree ID="Delivery"/>
+                    <SubTree ID="Charge"/>
+                    <AlwaysSuccess/>
+                </Switch3>
+            </Sequence>
         </BehaviorTree>
 
         <BehaviorTree ID="Reception">
-            <Fallback name="reception_fallback">
-                <TimeKeeping    name="time_keeping"/>
-                <Music          name="music"/>
-                <SubTree        ID="Direction"/>
-            </Fallback>
+            <Sequence name="choose_mode_sequence">
+                <ChooseMode name="choose_mode"  mode="{mode}"/>
+                <Switch3 variable="{mode}"  case_1="time_keeping" case_2="music" case_3="direction">
+                    <TimeKeeping    name="time_keeping"/>
+                    <Music          name="music"/>
+                    <SubTree        ID="Direction"/>
+                    <AlwaysSuccess/>
+                </Switch3>
+            </Sequence>
         </BehaviorTree>
 
         <BehaviorTree ID="MainTree">
-            <Fallback name="root_fallback">
-                <SubTree ID="Control"/>
-                <SubTree ID="Reception"/>
-            </Fallback>
+            <KeepRunningUntilFailure>
+                <Sequence name="choose_mode_sequence">
+                    <ChooseMode name="choose_mode"  mode="{mode}"/>
+                    <Switch2 variable="{mode}"  case_1="control" case_2="reception">
+                        <SubTree ID="Control"/>
+                        <SubTree ID="Reception"/>
+                        <AlwaysSuccess/>
+                    </Switch2>
+                </Sequence>
+            </KeepRunningUntilFailure>
         </BehaviorTree>
 
     </root>
@@ -104,6 +118,7 @@ int main(int argc, char **argv)
 
     // Register nodes
     factory.registerNodeType<Control::Initialize>("Initialize");
+    factory.registerNodeType<Control::ChooseMode>("ChooseMode");
     factory.registerSimpleCondition("CheckBattery", std::bind(Control::CheckBattery));
     factory.registerNodeType<Control::ChoosePath>("ChoosePath");
     factory.registerNodeType<Control::GetNumOfPoses>("GetNumOfPoses");

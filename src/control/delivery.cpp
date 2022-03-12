@@ -9,6 +9,8 @@ int number_of_poses;
 int arr_index = 0;
 my_behavior_tree::DeliveryPose *deli_pose;
 int timeout = 10;  // time to wait (s)
+std::string mode;
+bool choose_mode = false;
 
 namespace Control
 {
@@ -20,6 +22,8 @@ Initialize::Initialize(const std::string& name) : BT::SyncActionNode(name, {})
    ROS_WARN("[Initialize]: /take_package service is ready");
    delivery_point_srv = nh_.advertiseService("set_delivery_point", &Initialize::delivery_point_clbk, this);
    ROS_WARN("[Initialize]: /set_delivery_point service is ready");
+   choose_mode_srv = nh_.advertiseService("choose_mode", &Initialize::choose_mode_clbk, this);
+   ROS_WARN("[Initialize]: /choose_mode service is ready");
 }
 
 BT::NodeStatus Initialize::tick()
@@ -59,6 +63,38 @@ bool Initialize::delivery_point_clbk(my_behavior_tree::SetDeliveryPoint::Request
    res.success = true;
    choose_path = true;
    return true;
+}
+
+bool Initialize::choose_mode_clbk(my_behavior_tree::ChooseMode::Request &req,
+                      my_behavior_tree::ChooseMode::Response &res)
+{
+   mode = req.mode;
+   res.success = true;
+   choose_mode = true;
+   return true;
+}
+
+// Choose Mode
+ChooseMode::ChooseMode(const std::string& name, const BT::NodeConfiguration& config):
+        BT::SyncActionNode(name, config)
+{
+}
+
+BT::NodeStatus ChooseMode::tick()
+{
+   std::cout << "Choose a mode" << std::endl;
+   while (!choose_mode)
+   {
+      ros::spinOnce();
+   }
+   choose_mode = false;
+   setOutput<std::string>("mode", mode);
+   return BT::NodeStatus::SUCCESS;
+}
+
+BT::PortsList ChooseMode::providedPorts()
+{
+   return { BT::OutputPort<std::string>("mode") };
 }
 
 // Check battery

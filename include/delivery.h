@@ -5,6 +5,7 @@
 #include "move_base_msgs/MoveBaseAction.h"
 #include "my_behavior_tree/TakePackage.h"
 #include "my_behavior_tree/SetDeliveryPoint.h"
+#include "my_behavior_tree/ChooseMode.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "geometry_msgs/Pose.h"
@@ -37,17 +38,27 @@ template <> inline geometry_msgs::Pose BT::convertFromString(BT::StringView str)
 namespace Control
 {
 
+class ChooseMode : public BT::SyncActionNode
+{
+public:
+    ChooseMode(const std::string& name, const BT::NodeConfiguration& config);
+    BT::NodeStatus tick() override;
+    static BT::PortsList providedPorts();
+};
+
 class Initialize : public BT::SyncActionNode
 {
 public:
     ros::NodeHandle nh_;
-    ros::ServiceServer take_package_srv, delivery_point_srv;
+    ros::ServiceServer take_package_srv, delivery_point_srv, choose_mode_srv;
     Initialize(const std::string& name);
     BT::NodeStatus tick() override;
     bool take_package_clbk(my_behavior_tree::TakePackage::Request &req,
                       my_behavior_tree::TakePackage::Response &res);
     bool delivery_point_clbk(my_behavior_tree::SetDeliveryPoint::Request &req,
                       my_behavior_tree::SetDeliveryPoint::Response &res);
+    bool choose_mode_clbk(my_behavior_tree::ChooseMode::Request &req,
+                      my_behavior_tree::ChooseMode::Response &res);
 };
 
 BT::NodeStatus CheckBattery();  // another way to define node

@@ -16,6 +16,7 @@ add_service_files(
   GoToPose.srv
   PauseRequest.srv
   CruiseMode.srv
+  ChooseMode.srv
 )
 
 add_message_files(
